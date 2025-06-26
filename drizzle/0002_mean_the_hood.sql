@@ -1,0 +1,1 @@
+ALTER TABLE "markdown_pages" ALTER COLUMN "userId" DROP NOT NULL;

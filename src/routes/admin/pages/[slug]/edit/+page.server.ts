@@ -11,7 +11,8 @@ import type { PageServerLoad, Actions } from './$types';
 const schema = z.object({
 	title: z.string().min(1, 'Title is required'),
 	description: z.string().nullable(),
-	content: z.string().min(1, 'Content is required')
+	content: z.string().min(1, 'Content is required'),
+	isPublic: z.boolean()
 });
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -46,7 +47,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 				slug: page.slug,
 				title: page.title,
 				content: page.content,
-				description: page.description
+				description: page.description,
+				isPublic: page.isPublic
 			}
 		};
 	} catch (e) {
@@ -81,6 +83,7 @@ export const actions: Actions = {
 					content: form.data.content,
 					title: form.data.title,
 					description: form.data.description,
+					isPublic: form.data.isPublic,
 					updatedAt: new Date()
 				})
 				.where(eq(markdownPages.slug, slug));

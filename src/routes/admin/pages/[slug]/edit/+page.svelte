@@ -5,6 +5,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Toggle } from '$lib/components/ui/toggle';
+	import * as Switch from '$lib/components/ui/switch';
 	import { processMarkdown } from '$lib/core';
 	import { ArrowLeft } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
@@ -54,6 +55,11 @@
 		{#if $errors.description}
 			<p class="text-destructive mt-1 text-sm">{$errors.description}</p>
 		{/if}
+	</div>
+
+	<div class="mb-4 flex items-center space-x-2">
+		<Switch.Root bind:checked={$form.isPublic} id="isPublic" name="isPublic" />
+		<Label for="isPublic">Page Public</Label>
 	</div>
 	<div class="mb-4">
 		<div class="mb-2 flex items-center justify-between">

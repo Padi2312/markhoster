@@ -1,7 +1,7 @@
 import type { PageAsset } from '$lib/server/db/types';
 import { marked } from 'marked';
 
-export const processMarkdown = (content: string, assets: PageAsset[]) => {
+export const processMarkdown = async (content: string, assets: PageAsset[]) => {
 	// Replace asset references with actual URLs
 	let processedContent = content;
 
@@ -24,5 +24,5 @@ export const processMarkdown = (content: string, assets: PageAsset[]) => {
 		gfm: true
 	});
 
-	return marked(processedContent);
+	return await marked(processedContent);
 };

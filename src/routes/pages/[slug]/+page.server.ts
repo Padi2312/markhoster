@@ -1,4 +1,4 @@
-import { processMarkdown } from '$lib/server/core';
+import { processMarkdown } from '$lib/core';
 import { db } from '$lib/server/db';
 import { markdownPages, pageAssets } from '$lib/server/db/schema';
 import type { PageAsset } from '$lib/server/db/types';
@@ -37,11 +37,12 @@ export const load: PageServerLoad = async ({ params }) => {
 			.set({ viewCount: page.viewCount + 1 })
 			.where(eq(markdownPages.id, page.id));
 
-		const content = processMarkdown(page.content, assets);
+		const content = await processMarkdown(page.content, assets);
 
 		return {
 			page: {
 				id: page.id,
+				slug: page.slug,
 				title: page.title,
 				content: content,
 				description: page.description,

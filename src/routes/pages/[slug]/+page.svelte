@@ -14,7 +14,6 @@
 		<meta property="og:description" content={data.page.description} />
 	{/if}
 	<meta property="og:type" content="article" />
-	<link rel="stylesheet" href="/github-dark.css" />
 </svelte:head>
 
 <main class="container mx-auto max-w-6xl px-4 py-8">

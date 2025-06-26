@@ -2,6 +2,7 @@ import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { markdownPages } from '$lib/server/db/schema';
 import { desc } from 'drizzle-orm';
+import type { MarkdownPage } from '$lib/types';
 
 export const load: PageServerLoad = async () => {
 	try {
@@ -23,7 +24,7 @@ export const load: PageServerLoad = async () => {
 
 		return {
 			pages
-		};
+		} as { pages: MarkdownPage[] };
 	} catch (e) {
 		console.error('Error loading pages:', e);
 		return {

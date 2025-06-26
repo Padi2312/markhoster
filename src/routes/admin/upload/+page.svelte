@@ -1,8 +1,7 @@
 <script lang="ts">
+	import Header from '$lib/components/markhoster/PageHeader.svelte';
+	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import { Textarea } from '$lib/components/ui/textarea';
 	import {
 		Card,
 		CardContent,
@@ -10,8 +9,13 @@
 		CardHeader,
 		CardTitle
 	} from '$lib/components/ui/card';
-	import { Alert, AlertDescription } from '$lib/components/ui/alert';
+	import Checkbox from '$lib/components/ui/checkbox/checkbox.svelte';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+	import { Textarea } from '$lib/components/ui/textarea';
+	import { Toggle } from '$lib/components/ui/toggle';
 	import { ArrowLeft } from '@lucide/svelte';
+	import { marked } from 'marked';
 
 	let fileInput: HTMLInputElement;
 	let selectedFile: File | null = $state(null);
@@ -21,21 +25,18 @@
 	let uploading = $state(false);
 	let uploadResult: any = $state(null);
 	let error = $state('');
+	let markdownContent = $state('');
+	let showPreview = $state(false);
 
-	async function handleUpload() {
+	let renderedContent = $derived(marked.parse(markdownContent));
+
+	async function handleUpload(e: Event) {
+		e.preventDefault();
 		console.log('Upload triggered');
-		console.log('Selected file:', selectedFile);
 
-		if (!selectedFile) {
-			error = 'Please select a markdown file';
+		if (!markdownContent) {
+			error = 'Please select a markdown file or add content';
 			console.log('No file selected');
-			return;
-		}
-
-		console.log('Selected file:', selectedFile.name, selectedFile.type, selectedFile.size);
-
-		if (!selectedFile.name.endsWith('.md')) {
-			error = 'Please select a .md file';
 			return;
 		}
 
@@ -45,8 +46,11 @@
 
 		try {
 			const formData = new FormData();
-			formData.append('file', selectedFile);
-			formData.append('title', title || selectedFile.name.replace('.md', ''));
+			const file = new Blob([markdownContent], { type: 'text/markdown' });
+			const fileName = selectedFile?.name ?? title + '.md';
+
+			formData.append('file', file, fileName);
+			formData.append('title', title || fileName.replace('.md', ''));
 			formData.append('description', description);
 			formData.append('isPublic', isPublic.toString());
 
@@ -68,6 +72,8 @@
 				description = '';
 				selectedFile = null;
 				if (fileInput) fileInput.value = '';
+				markdownContent = ''; // Clear markdown content
+				showPreview = false;
 			} else {
 				error = result.error || 'Upload failed';
 			}
@@ -79,58 +85,77 @@
 		}
 	}
 
-	function handleFileChange() {
+	async function handleFileChange() {
 		const file = fileInput.files?.[0];
 		console.log('File change event:', file);
 		selectedFile = file || null;
-		if (file && !title) {
-			title = file.name.replace('.md', '');
+		if (file) {
+			if (!title) {
+				title = file.name.replace('.md', '');
+			}
+			// Read file content for preview
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				markdownContent = e.target?.result as string;
+			};
+			reader.readAsText(file);
+		} else {
+			markdownContent = '';
 		}
 	}
 </script>
 
 <svelte:head>
-	<title>Upload Markdown - MarkHoster Admin</title>
+	<title>Upload Markdown</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-2xl px-4 py-12">
-	<div class="mb-10 flex items-center gap-4">
-		<Button
-			href="/admin/dashboard"
-			variant="ghost"
-			size="icon"
-			class="border-border bg-background hover:bg-muted rounded-full border shadow"
-		>
-			<ArrowLeft class="h-5 w-5" />
-		</Button>
-		<div>
-			<h1 class="text-foreground text-4xl leading-tight font-extrabold">Upload Markdown Page</h1>
-			<p class="text-muted-foreground mt-1 text-base">
-				Upload a markdown file to create a new hosted page
-			</p>
-		</div>
-	</div>
+<Header
+	title="Upload Markdown Page"
+	description="Upload a markdown file to create a new hosted page"
+/>
 
-	{#if uploadResult}
-		<div class="max-w-2xl mx-auto mb-8">
-			<div class="rounded-xl border-2 border-success bg-success/20 p-5 flex items-center gap-4 shadow-lg animate-in fade-in slide-in-from-top-2">
-				<svg class="w-8 h-8 text-success flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-				<div class="flex-1">
-					<span class="font-bold text-success text-lg">Page uploaded successfully!</span>
-					<a href={uploadResult.url} class="ml-3 font-semibold underline text-success hover:text-success/80 transition" target="_blank">View page</a>
-				</div>
+{#if uploadResult}
+	<div class="mx-auto mb-8 max-w-2xl">
+		<div
+			class="border-success bg-success/20 animate-in fade-in slide-in-from-top-2 flex items-center gap-4 rounded-xl border-2 p-5 shadow-lg"
+		>
+			<svg
+				class="text-success h-8 w-8 flex-shrink-0"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				viewBox="0 0 24 24"
+				><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg
+			>
+			<div class="flex-1">
+				<span class="text-success text-lg font-bold">Page uploaded successfully!</span>
+				<a
+					href={uploadResult.url}
+					class="text-success hover:text-success/80 ml-3 font-semibold underline transition"
+					target="_blank">View page</a
+				>
 			</div>
 		</div>
-	{/if}
+	</div>
+{/if}
 
-	<Card class="shadow-xl border border-border bg-card">
-		<CardHeader class="pb-2">
-			<CardTitle class="text-xl font-semibold">Upload Details</CardTitle>
-			<CardDescription class="text-muted-foreground">Choose a markdown file and provide details for your hosted page</CardDescription>
-		</CardHeader>
-		<CardContent class="space-y-8 pt-2">
-			<div class="space-y-2">
-				<Label for="file" class="font-medium">Markdown File</Label>
+<Card class="border-border bg-card border shadow-xl">
+	<CardHeader class="pb-2">
+		<CardTitle class="text-xl font-semibold">Upload Details</CardTitle>
+		<CardDescription class="text-muted-foreground"
+			>Choose a markdown file and provide details for your hosted page</CardDescription
+		>
+	</CardHeader>
+	<CardContent class="space-y-8 pt-2">
+		<div class="space-y-2">
+			<Label for="file" class="font-medium">Markdown File</Label>
+			<div
+				class="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-16 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-2 text-base shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+				role="button"
+				tabindex="0"
+				onclick={() => fileInput.click()}
+				onkeydown={(e) => e.key === 'Enter' && fileInput.click()}
+			>
 				<input
 					id="file"
 					type="file"
@@ -138,62 +163,84 @@
 					bind:this={fileInput}
 					onchange={handleFileChange}
 					required
-					class="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-11 w-full rounded-lg border px-4 py-2 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-base file:font-medium focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+					class="sr-only"
 				/>
 				{#if selectedFile}
 					<p class="text-success mt-1 text-sm">
 						Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
 					</p>
+				{:else}
+					<p class="text-muted-foreground">Click to browse or drag & drop</p>
 				{/if}
-				<p class="text-muted-foreground text-xs">
-					Only <span class="font-mono">.md</span> files are allowed
-				</p>
 			</div>
 
-			<div class="space-y-2">
-				<Label for="title" class="font-medium">Title</Label>
-				<Input
-					id="title"
-					bind:value={title}
-					placeholder="Page title (will be auto-filled from filename)"
-					class="h-11 rounded-lg text-base"
-				/>
+			<p class="text-muted-foreground text-xs">
+				Only <span class="font-mono">.md</span> files are allowed
+			</p>
+		</div>
+
+		<div class="space-y-2">
+			<Label for="title" class="font-medium">Title</Label>
+			<Input
+				id="title"
+				bind:value={title}
+				placeholder="Page title (will be auto-filled from filename)"
+			/>
+		</div>
+
+		<div class="space-y-2">
+			<Label for="description" class="font-medium">Description (Optional)</Label>
+			<Textarea
+				id="description"
+				bind:value={description}
+				placeholder="Brief description for SEO and social media"
+				rows={3}
+			/>
+		</div>
+
+		<div class="flex items-center space-x-2 pt-2">
+			<Checkbox id="public" bind:checked={isPublic} />
+			<Label for="public" class="text-base">Make page public</Label>
+		</div>
+
+		<div class="mb-4">
+			<div class="mb-2 flex items-center justify-between">
+				<Label for="markdownContent">Content</Label>
+				<Toggle pressed={showPreview} onPressedChange={(p) => (showPreview = p)}>
+					Toggle Preview
+				</Toggle>
 			</div>
-
-			<div class="space-y-2">
-				<Label for="description" class="font-medium">Description (Optional)</Label>
-				<Textarea
-					id="description"
-					bind:value={description}
-					placeholder="Brief description for SEO and social media"
-					rows={3}
-					class="rounded-lg text-base"
-				/>
-			</div>
-
-			<div class="flex items-center space-x-2 pt-2">
-				<input
-					id="public"
-					type="checkbox"
-					bind:checked={isPublic}
-					class="border-border accent-primary h-5 w-5 rounded"
-				/>
-				<Label for="public" class="text-base">Make page public</Label>
-			</div>
-
-			{#if error}
-				<Alert class="border-destructive/20 bg-destructive/10 mt-2">
-					<AlertDescription class="text-destructive">{error}</AlertDescription>
-				</Alert>
-			{/if}
-
-			<Button
-				onclick={handleUpload}
-				disabled={uploading}
-				class="mt-4 h-11 w-full text-base font-semibold"
+			<div
+				class="grid"
+				style="grid-template-columns: {showPreview ? '1fr 1fr' : '1fr'}; gap: 1rem;"
 			>
-				{uploading ? 'Uploading...' : 'Upload Page'}
-			</Button>
-		</CardContent>
-	</Card>
-</div>
+				<Textarea
+					id="markdownContent"
+					bind:value={markdownContent}
+					placeholder="Markdown content will appear here after selecting a file..."
+					rows={15}
+					class="font-mono"
+				/>
+				{#if showPreview}
+					<div class="markdown-body overflow-auto rounded-md border p-4" style="max-height: 400px;">
+						{@html renderedContent}
+					</div>
+				{/if}
+			</div>
+		</div>
+
+		{#if error}
+			<Alert class="border-destructive/20 bg-destructive/10 mt-2">
+				<AlertDescription class="text-destructive">{error}</AlertDescription>
+			</Alert>
+		{/if}
+
+		<Button
+			onclick={handleUpload}
+			disabled={uploading}
+			class="mt-4 h-11 w-full text-base font-semibold"
+		>
+			{uploading ? 'Uploading...' : 'Upload Page'}
+		</Button>
+	</CardContent>
+</Card>

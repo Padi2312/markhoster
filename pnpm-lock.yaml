@@ -29,6 +29,9 @@ importers:
       postgres:
         specifier: ^3.4.7
         version: 3.4.7
+      zod:
+        specifier: ^3.25.67
+        version: 3.25.67
     devDependencies:
       '@eslint/compat':
         specifier: ^1.3.0
@@ -4510,5 +4513,4 @@ snapshots:
       zod: 3.25.67
     optional: true
 
-  zod@3.25.67:
-    optional: true
+  zod@3.25.67: {}

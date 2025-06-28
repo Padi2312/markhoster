@@ -1,5 +1,8 @@
 import type { PageAsset } from '$lib/server/db/types';
 import { marked } from 'marked';
+import markedAlert from 'marked-alert';
+import markedShiki from 'marked-shiki';
+import { codeToHtml } from 'shiki';
 
 export const processMarkdown = async (content: string, assets: PageAsset[]) => {
 	// Replace asset references with actual URLs
@@ -23,6 +26,14 @@ export const processMarkdown = async (content: string, assets: PageAsset[]) => {
 		breaks: true,
 		gfm: true
 	});
+	marked.use(markedAlert());
+	marked.use(
+		markedShiki({
+			async highlight(code, lang) {
+				return await codeToHtml(code, { lang, theme: 'min-dark' });
+			}
+		})
+	);
 
 	return await marked(processedContent);
 };

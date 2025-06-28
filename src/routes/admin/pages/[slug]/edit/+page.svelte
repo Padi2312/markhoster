@@ -3,11 +3,10 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import * as Switch from '$lib/components/ui/switch';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Toggle } from '$lib/components/ui/toggle';
-	import * as Switch from '$lib/components/ui/switch';
 	import { processMarkdown } from '$lib/core';
-	import { ArrowLeft } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms/client';
 
@@ -26,9 +25,9 @@
 	});
 
 	let showPreview = $state(false);
-
 	let renderedContent = $derived.by(async () => {
-		return await processMarkdown($form.content, []);
+		const result = await processMarkdown($form.content, []);
+		return result;
 	});
 </script>
 
@@ -71,14 +70,16 @@
 		<div class="grid" style="grid-template-columns: {showPreview ? '1fr 1fr' : '1fr'}; gap: 1rem;">
 			<Textarea id="content" name="content" rows={20} bind:value={$form.content} />
 			{#if showPreview}
-				<div class="markdown-body overflow-auto rounded-md border p-4">
-					{#await renderedContent}
-						<p>Loading preview...</p>
-					{:then renderedContent}
-						{@html renderedContent}
-					{:catch error}
-						<p>Error rendering preview: {error.message}</p>
-					{/await}
+				<div class="markdown-body relative min-h-[2rem] overflow-auto rounded-md border p-4">
+					<div class="preview-wrapper">
+						{#await renderedContent then newContent}
+							<div class="transition-opacity duration-200">
+								{@html newContent}
+							</div>
+						{:catch error}
+							<p>Error rendering preview: {error.message}</p>
+						{/await}
+					</div>
 				</div>
 			{/if}
 		</div>

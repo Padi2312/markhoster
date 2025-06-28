@@ -16,6 +16,12 @@
 	showBackButton={false}
 />
 
+<!-- Add a nicely styled Upload button at the top right -->
+<div class="mb-6 flex items-center justify-between">
+	<h2 class="text-2xl font-bold">Your Pages</h2>
+	<Button href="/admin/upload" >Upload Page</Button>
+</div>
+
 {#if !data?.pages || data.pages.length === 0}
 	<div class="bg-card rounded-lg border py-12 text-center">
 		<h3 class="text-foreground mb-2 text-lg font-semibold">No pages yet</h3>

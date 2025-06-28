@@ -35,23 +35,15 @@ async function ensureUniqueSlug(baseSlug: string): Promise<string> {
 }
 
 export const POST: RequestHandler = async ({ request, url }) => {
-    console.log('API: Upload request received');
     try {
         const formData = await request.formData();
-        console.log('API: FormData parsed');
         
         const file = formData.get('file') as File | null;
         const title = formData.get('title') as string | null;
         const description = formData.get('description') as string | null;
         const isPublic = formData.get('isPublic') !== 'false'; // Default to true
-        
-        console.log('API: File received:', file?.name, file?.size);
-        console.log('API: Title:', title);
-        console.log('API: Description:', description);
-        console.log('API: IsPublic:', isPublic);
-        
+
         if (!file) {
-            console.log('API: No file in request');
             return new Response(JSON.stringify({ error: 'No file uploaded.' }), { status: 400 });
         }
 
@@ -59,10 +51,8 @@ export const POST: RequestHandler = async ({ request, url }) => {
         const originalName = file.name;
         const ext = path.extname(originalName).toLowerCase();
 
-        console.log('API: File extension:', ext);
 
         if (ext !== '.md') {
-            console.log('API: Invalid file extension');
             return new Response(JSON.stringify({ error: 'Only .md files allowed.' }), { status: 400 });
         }
 
@@ -71,16 +61,10 @@ export const POST: RequestHandler = async ({ request, url }) => {
         const pageTitle = title || originalName.replace(/\.md$/i, '');
         const baseSlug = generateSlug(pageTitle);
         const uniqueSlug = await ensureUniqueSlug(baseSlug);
-        
-        console.log('API: Generated slug:', uniqueSlug);
-        
-        // Read the markdown content
         const markdownContent = buffer.toString('utf-8');
-        console.log('API: Markdown content length:', markdownContent.length);
 
         await mkdir(UPLOAD_DIR, { recursive: true });
         await writeFile(path.join(UPLOAD_DIR, filename), buffer);
-        console.log('API: File written to disk');
 
         // Insert into database with proper schema
         const [insertedPage] = await db.insert(markdownPages).values({
@@ -96,12 +80,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
             filenameOnFilesystem: filename
         }).returning();
 
-        console.log('API: Page inserted into database:', insertedPage.id);
-
         const publicUrl = `${url.origin}/pages/${uniqueSlug}`;
-
-        console.log('API: Success, returning URL:', publicUrl);
-
         return new Response(JSON.stringify({ 
             success: true, 
             id: insertedPage.id,

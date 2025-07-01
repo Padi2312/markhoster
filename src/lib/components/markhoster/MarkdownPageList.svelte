@@ -8,13 +8,14 @@
 </script>
 
 {#each pages as page}
+	{@const previewPageUrl = `/pages/${page.slug}?preview=true`}
 	<li
 		class="hover:bg-accent/30 flex flex-col items-start justify-between gap-2 px-3 py-2 transition sm:flex-row sm:items-center"
 	>
 		<div class="min-w-0 flex-1">
 			<div class="flex min-w-0 items-center gap-2">
 				<a
-					href="/pages/{page.slug}"
+					href={previewPageUrl}
 					class="text-primary truncate text-base font-semibold hover:underline"
 					target="_blank"
 				>
@@ -55,7 +56,7 @@
 			<Button
 				variant="ghost"
 				size="icon"
-				href={`/pages/${page.slug}`}
+				href={previewPageUrl}
 				target="_blank"
 				aria-label="View page"
 				class="hover:bg-primary/10"

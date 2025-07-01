@@ -6,8 +6,9 @@ import { error } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, url }) => {
 	const { slug } = params;
+	const isPreview = url.searchParams.get('preview') !== null;
 
 	if (!slug) {
 		throw error(404, 'Page not found');
@@ -31,11 +32,13 @@ export const load: PageServerLoad = async ({ params }) => {
 			.from(pageAssets)
 			.where(eq(pageAssets.pageId, page.id));
 
-		// Increment view count
-		await db
-			.update(markdownPages)
-			.set({ viewCount: page.viewCount + 1 })
-			.where(eq(markdownPages.id, page.id));
+		// Increment view count if not in preview mode
+		if (!isPreview) {
+			await db
+				.update(markdownPages)
+				.set({ viewCount: page.viewCount + 1 })
+				.where(eq(markdownPages.id, page.id));
+		}
 
 		const content = await processMarkdown(page.content, assets);
 

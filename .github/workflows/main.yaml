@@ -71,7 +71,7 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: ${{ runner.os }}-buildx-
 
-      - name: Build Docker image (local, for scan)
+      - name: Build Docker image (local, for scan/test)
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -82,10 +82,15 @@ jobs:
             markhoster:${{ steps.version.outputs.version }}
             ${{ env.REGISTRY }}/${{ steps.imagename.outputs.name }}:${{ steps.version.outputs.version }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+          cache-from: |
+            type=local,src=/tmp/.buildx-cache
+            type=registry,ref=${{ env.REGISTRY }}/${{ steps.imagename.outputs.name }}:buildcache
+          cache-to: |
+            type=local,dest=/tmp/.buildx-cache,mode=max
+            type=registry,ref=${{ env.REGISTRY }}/${{ steps.imagename.outputs.name }}:buildcache,mode=max
 
       - name: Scan image for vulnerabilities (local)
+        id: trivy
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: markhoster:${{ steps.version.outputs.version }}
@@ -100,8 +105,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+          cache-from: |
+            type=local,src=/tmp/.buildx-cache
+            type=registry,ref=${{ env.REGISTRY }}/${{ steps.imagename.outputs.name }}:buildcache
+          cache-to: |
+            type=local,dest=/tmp/.buildx-cache,mode=max
+            type=registry,ref=${{ env.REGISTRY }}/${{ steps.imagename.outputs.name }}:buildcache,mode=max
 
       - run: |
           echo "::notice::Docker image pushed to: ${{ env.REGISTRY }}/${{ steps.imagename.outputs.name }}:${{ steps.version.outputs.version }}"

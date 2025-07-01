@@ -1,0 +1,35 @@
+services:
+  markhoster:
+    image: ghcr.io/padi2312/markhoster:0.0.1
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - 3000:3000
+    volumes:
+      - ./data/app/files:/app/files
+    env_file: .env
+    networks:
+      default:
+
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD:
+      POSTGRES_DB:
+      POSTGRES_USER:
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 3s
+      timeout: 3s
+      retries: 3
+    networks:
+      default:
+
+networks:
+  default:
+    driver: bridge

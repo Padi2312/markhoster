@@ -1,8 +1,11 @@
 # MarkHoster
 
-MarkHoster is self-hosted platform for publishing Markdown pages with ease. Whether you want to share documentation, guides, or personal notes, MarkHoster provides a seamless workflow for managing content and assets.
+<p align="center">
+    <img src="src/lib/assets/logo.png" alt="MarkHoster Logo" width="200" />
+</p>
+A self-hosted platform for publishing Markdown pages with clean URLs, live editing, access control, and more.
 
-## ✨ Features
+## Features
 
 - 🌐 **Clean URLs** — Friendly slugs like `/pages/my-first-page`
 - ✏️ **Live Preview & Editing** — Instant Markdown preview and easy editing
@@ -11,57 +14,73 @@ MarkHoster is self-hosted platform for publishing Markdown pages with ease. Whet
 - 🚀 **SEO Ready** — Meta tags and descriptions for discoverability
 - 💡 **Syntax Highlighting & Alerts** — Beautiful code blocks and callouts
 
-## 🚀 Getting Started
+## Quick Start
 
-1. **Clone the repository**
-    ```bash
-    git clone https://github.com/yourusername/markhoster.git
-    cd markhoster
-    ```
+1. Start the Postgres database in `docker-compose.yml`:
 
-2. **Install dependencies**
-    ```bash
-    pnpm install
-    ```
+   ```bash
+   docker compose up -d
+   ```
 
-3. **Run the development server**
-    ```bash
-    pnpm dev
-    ```
+2. Clone the repository and install dependencies:
 
-4. **Access the admin panel**  
-    Visit `http://localhost:5173/admin` to upload Markdown files, manage assets, and configure your pages.
+   ```bash
+   git clone https://github.com/yourusername/markhoster.git
+   cd markhoster
+   pnpm install
+   ```
 
-> **Tip:** For self-hosting, you can use the provided [distroless Docker image](./Dockerfile.distroless) for a minimal and secure deployment—no need to build locally! See the Docker section below for details.
+3. Start the development server:
+   ```bash
+   pnpm dev
+   ```
 
-## 🖼️ Example
+4. Open your browser:
+   - App: [http://localhost:5173](http://localhost:5173)
+   - Admin panel: [http://localhost:5173/admin](http://localhost:5173/admin)
 
-```markdown
-# My First Markdown Page
+## Docker (Self-Hosting)
 
-Welcome to my awesome markdown page hosted on MarkHoster!
+### Pre-built Docker Image
 
-## Example Image
+For quick self-hosting, use the pre-built Docker image:
 
-![My Image](example-image.jpg)
-```
+1. Copy and edit env file:
 
-## 🛠️ Tech Stack
+   ```bash
+   cp docker/.env.example docker/.env
+   # Edit docker/.env
+   ```
 
-- [SvelteKit](https://kit.svelte.dev/)
-- [Vite](https://vitejs.dev/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Drizzle ORM](https://orm.drizzle.team/)
-- [Marked](https://marked.js.org/) with [Shiki](https://shiki.matsu.io/) for code highlighting
+2. Start with Docker Compose:
 
-## 📦 Docker Support
+   ```bash
+   cd docker
+   docker compose up -d
+   ```
 
-MarkHoster can be built and deployed as a Docker image. For self-hosting, a [distroless Docker build](./Dockerfile.distroless) is available for a lightweight, production-ready container. See `.github/workflows/main.yaml` for CI/CD details.
+   - App: [http://localhost:3000](http://localhost:3000)
+   - Admin: [http://localhost:3000/admin](http://localhost:3000/admin)
 
-## 📄 License
+### Build Your Own Image
+
+For more control, build your own Docker image:
+
+1. Build the image:
+
+   ```bash
+   docker build -t markhoster .
+   ```
+
+2. Run the container:
+
+   ```bash
+   docker run -p 3000:3000 --env-file docker/.env -v /srv/docker/markhoster/app/files:/app/files markhoster
+   ```
+
+> [!NOTE]
+> For HTTPS/Traefik, see `docker/docker-compose-traefik.yml`.
+
+## License
 
 MIT
-
----
-
-*Powered by MarkHoster – Making markdown hosting simple and beautiful.*

@@ -12,7 +12,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push-image:
@@ -47,11 +46,15 @@ jobs:
         id: builddate
         run: echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
 
+      - name: Set lowercase image name
+        id: imagename
+        run: echo "name=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ steps.imagename.outputs.name }}
           tags: |
             type=raw,value=${{ steps.version.outputs.version }}
             type=ref,event=branch,enable=true
@@ -76,7 +79,7 @@ jobs:
           platforms: linux/amd64
           tags: |
             markhoster:${{ steps.version.outputs.version }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+            ${{ env.REGISTRY }}/${{ steps.imagename.outputs.name }}:${{ steps.version.outputs.version }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
@@ -100,5 +103,5 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
 
       - run: |
-          echo "::notice::Docker image pushed to: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}"
+          echo "::notice::Docker image pushed to: ${{ env.REGISTRY }}/${{ steps.imagename.outputs.name }}:${{ steps.version.outputs.version }}"
           echo "::notice::Packages: https://github.com/${{ github.repository }}/packages"

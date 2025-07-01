@@ -1,11 +1,67 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
+	import ConfirmationDialog from '$lib/components/common/ConfirmationDialog.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import type { MarkdownPage } from '$lib/types';
-	import { Eye, Folder, Pencil } from '@lucide/svelte';
+	import { Eye, Folder, Pencil, Trash } from '@lucide/svelte';
+	import { toast } from 'svelte-sonner';
 
 	let { pages }: { pages: MarkdownPage[] } = $props();
+
+	let isDeleteConfirmationOpen = $state(false);
+	let pageToDelete: MarkdownPage | null = $state(null);
+	let isDeleting = $state(false);
+
+	function openConfirmDeleteDialog(page: MarkdownPage) {
+		pageToDelete = page;
+		isDeleteConfirmationOpen = true;
+	}
+
+	async function handleDeleteConfirmed() {
+		if (!pageToDelete) return;
+
+		isDeleting = true;
+		try {
+			const res = await fetch('/api/pages', {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ pageId: pageToDelete.id })
+			});
+
+			if (res.ok) {
+				toast.success(`Page "${pageToDelete.title}" deleted successfully.`);
+				invalidateAll();
+			} else {
+				const errorData = await res.json();
+				toast.error(`Failed to delete page: ${errorData.message || 'Unknown error'}`);
+			}
+		} catch (error) {
+			console.error('Error deleting page:', error);
+			toast.error('An unexpected error occurred during deletion.');
+		} finally {
+			isDeleteConfirmationOpen = false;
+			pageToDelete = null;
+			isDeleting = false;
+		}
+	}
+
+	function handleDeleteCancelled() {
+		isDeleteConfirmationOpen = false;
+		pageToDelete = null;
+	}
 </script>
+
+<ConfirmationDialog
+	open={isDeleteConfirmationOpen}
+	title="Delete Page"
+	message={`Are you sure you want to delete the page "${pageToDelete?.title ?? ''}"? This action cannot be undone.`}
+	confirmText="Delete"
+	cancelText="Cancel"
+	onConfirm={handleDeleteConfirmed}
+	onCancel={handleDeleteCancelled}
+	loading={isDeleting}
+/>
 
 {#each pages as page}
 	{@const previewPageUrl = `/pages/${page.slug}?preview=true`}
@@ -74,6 +130,16 @@
 				href={`/admin/pages/${page.slug}/edit`}
 			>
 				<Pencil class="size-5" />
+			</Button>
+			<Button
+				variant="ghost"
+				size="icon"
+				aria-label="Delete page"
+				class="hover:bg-destructive/10 text-destructive"
+				onclick={() => openConfirmDeleteDialog(page)}
+				disabled={isDeleting}
+			>
+				<Trash class="size-5" />
 			</Button>
 		</div>
 	</li>

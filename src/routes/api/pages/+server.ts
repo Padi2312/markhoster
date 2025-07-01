@@ -1,12 +1,9 @@
-import type { RequestHandler } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { markdownPages } from '$lib/server/db/schema';
-import { randomUUID } from 'crypto';
-import { mkdir, writeFile } from 'fs/promises';
-import path from 'path';
+import type { RequestHandler } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
-const UPLOAD_DIR = path.resolve('files', 'pages');
+
 
 // Function to generate a URL-safe slug from title
 function generateSlug(title: string): string {
@@ -49,26 +46,13 @@ export const POST: RequestHandler = async ({ request, url }) => {
 
         const buffer = Buffer.from(await file.arrayBuffer());
         const originalName = file.name;
-        const ext = path.extname(originalName).toLowerCase();
-
-
-        if (ext !== '.md') {
-            return new Response(JSON.stringify({ error: 'Only .md files allowed.' }), { status: 400 });
-        }
-
-        const id = randomUUID();
-        const filename = `${id}${ext}`;
         const pageTitle = title || originalName.replace(/\.md$/i, '');
         const baseSlug = generateSlug(pageTitle);
         const uniqueSlug = await ensureUniqueSlug(baseSlug);
         const markdownContent = buffer.toString('utf-8');
 
-        await mkdir(UPLOAD_DIR, { recursive: true });
-        await writeFile(path.join(UPLOAD_DIR, filename), buffer);
-
         // Insert into database with proper schema
         const [insertedPage] = await db.insert(markdownPages).values({
-            id,
             userId: null, // TODO: Get from session/auth
             title: pageTitle,
             slug: uniqueSlug,
@@ -76,8 +60,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
             description: description || null,
             isPublic,
             isActive: true,
-            viewCount: 0,
-            filenameOnFilesystem: filename
+            viewCount: 0
         }).returning();
 
         const publicUrl = `${url.origin}/pages/${uniqueSlug}`;

@@ -87,7 +87,6 @@ export const markdownPages = pgTable('markdown_pages', {
 	isPublic: boolean('is_public').default(true).notNull(),
 	isActive: boolean('is_active').default(true).notNull(),
 	viewCount: integer('view_count').default(0).notNull(),
-	filenameOnFilesystem: text('filename_on_filesystem').notNull(), // Reference to the .md file
 	customDomain: text('custom_domain'), // Optional: for custom domain hosting
 	...timestamps
 });

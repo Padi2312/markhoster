@@ -14,7 +14,6 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Toggle } from '$lib/components/ui/toggle';
-	import { ArrowLeft } from '@lucide/svelte';
 	import { marked } from 'marked';
 
 	let fileInput: HTMLInputElement;
@@ -130,7 +129,7 @@
 			<div class="flex-1">
 				<span class="text-success text-lg font-bold">Page uploaded successfully!</span>
 				<a
-					href={uploadResult.url}
+					href={uploadResult.url + `?preview=true`}
 					class="text-success hover:text-success/80 ml-3 font-semibold underline transition"
 					target="_blank">View page</a
 				>

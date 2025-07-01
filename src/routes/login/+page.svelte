@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import logo from '$lib/assets/logo.png';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
@@ -8,14 +8,10 @@
 		CardHeader,
 		CardTitle
 	} from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { signIn } from '@auth/sveltekit/client';
-	import { Key, Mail, Shield, Sparkles, Server } from '@lucide/svelte';
-	import { onMount } from 'svelte';
-
-	let { data } = $props();
+	import { Key, Mail, Shield } from '@lucide/svelte';
 
 	let username = $state('');
 	let password = $state('');
@@ -84,19 +80,20 @@
 		<div class="w-full max-w-md">
 			<!-- Logo/Brand Section -->
 			<div class="mb-8 text-center">
-				<div
-					class="bg-primary mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl shadow-lg"
-				>
-					<Server class="text-primary-foreground h-8 w-8" />
+				<div class="mb-4 flex items-center justify-center gap-3">
+					<img
+						src={logo}
+						alt="MarkHoster Logo"
+						class="h-22 w-22 rounded-xl shadow"
+						loading="lazy"
+					/>
 				</div>
 				<h1 class="text-foreground text-3xl font-bold">MarkHoster</h1>
 				<p class="text-muted-foreground mt-2">Admin Portal</p>
 			</div>
 
 			<!-- Login Card -->
-			<Card
-				class="bg-card/80 border-border border shadow-2xl backdrop-blur-sm"
-			>
+			<Card class="bg-card/80 border-border border shadow-2xl backdrop-blur-sm">
 				<CardHeader class="pb-4 text-center">
 					<CardTitle
 						class="text-card-foreground flex items-center justify-center gap-2 text-2xl font-semibold"
@@ -191,18 +188,14 @@
 						{/if}
 						<span>Keycloak SSO</span>
 					</Button>
-
-					<!-- Security Notice -->
-					<div class="text-muted-foreground flex items-center justify-center gap-2 pt-2 text-xs">
-						<Sparkles class="h-3 w-3" />
-						<span>Secured with enterprise-grade encryption</span>
-					</div>
 				</CardContent>
 			</Card>
 
 			<!-- Footer -->
 			<div class="mt-8 text-center">
-				<p class="text-muted-foreground text-sm">© 2025 MarkHoster. All rights reserved.</p>
+				<p class="text-muted-foreground text-sm">
+					© {new Date().getFullYear()} MarkHoster. All rights reserved.
+				</p>
 			</div>
 		</div>
 	</div>
